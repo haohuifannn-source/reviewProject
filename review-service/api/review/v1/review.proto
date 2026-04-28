@@ -1,0 +1,74 @@
+syntax = "proto3";
+
+package api.review.v1;
+
+option go_package = "review-service/api/review/v1;v1";
+option java_multiple_files = true;
+option java_package = "api.review.v1";
+
+import "google/api/annotations.proto";
+import "validate/validate.proto";
+
+// 定义评价服务
+service Review {
+	rpc CreateReview (CreateReviewRequest) returns (CreateReviewReply){
+		option(google.api.http) = {
+			post: "/v1/review",
+			body: "*"
+		};
+	};
+	rpc ReplyReview (ReplyReviewRequest) returns (ReplyReviewReply){
+		option(google.api.http) = {
+			post: "/v1/reply",
+			body: "*"
+		};
+	};
+	rpc UpdateReview (UpdateReviewRequest) returns (UpdateReviewReply);
+	rpc DeleteReview (DeleteReviewRequest) returns (DeleteReviewReply);
+	rpc GetReview (GetReviewRequest) returns (GetReviewReply);
+	rpc ListReview (ListReviewRequest) returns (ListReviewReply);
+}
+
+// 创建评价的参数
+message CreateReviewRequest {
+	int64 userID = 1 [(validate.rules).int64 = {gt: 0}];
+	int64 orderID = 2 [(validate.rules).int64 = {gt: 0}];
+	int32 score = 3 [(validate.rules).int32 = {in: [1,2,3,4,5]}];
+	int32 serviceScore = 4 [(validate.rules).int32 = {in: [1,2,3,4,5]}];
+	int32 expressScore = 5 [(validate.rules).int32 = {in: [1,2,3,4,5]}];
+	string content = 6 [(validate.rules).string = {min_len: 2, max_len: 200}];
+	string picInfo = 7; //图片信息
+	string videoInfo = 8;
+	bool anonymous = 9; //是否匿名
+}
+
+// 创建评价的回复
+message CreateReviewReply {
+	int64 reviewID = 1;
+}
+
+// 回复评价请求
+message ReplyReviewRequest {
+	int64 reviewID = 1 [(validate.rules).int64 = {gt: 0}];
+	int64 storeID = 2 [(validate.rules).int64 = {gt: 0}];
+	string content = 3 [(validate.rules).string = {min_len: 2, max_len: 200}];
+	string picInfo = 4; //图片信息
+	string videoInfo = 5;
+}
+
+// 回复评价回复
+message ReplyReviewReply {
+	int64 replyID = 1;
+}
+
+message UpdateReviewRequest {}
+message UpdateReviewReply {}
+
+message DeleteReviewRequest {}
+message DeleteReviewReply {}
+
+message GetReviewRequest {}
+message GetReviewReply {}
+
+message ListReviewRequest {}
+message ListReviewReply {}
