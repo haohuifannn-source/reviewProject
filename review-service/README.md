@@ -149,5 +149,43 @@ make errors
 如review-b --> RPC -->review-service。
 
 通过git submodule方法，也就是说通过git仓库拉取公用的api文件
- 
 
+### 服务注册
+#### 新增注册中心的配置---consul
+1. 服务中心的dokcer参考```http://127.0.0.1:8500/ui/dc1/services```
+2. 新增consul的conf和yaml
+2.1 可以新增一个.yaml文件
+2.2 然后在main函数里面加入
+```go 
+// 对应的是registry.yaml的配置
+	var rc conf.Registry
+	if err := c.Scan(&rc); err != nil {
+		panic(err)
+	}
+```
+3. 因为我们在main函数的newapp引入了```r registry.Registrar```，因此需要在别的地方提前把这个包进来，我们考虑在server层下面定义这个，然后包进来
+
+4. 在wire.go函数里面把```*conf.Registry```也包进来
+
+5. 然后在newapp的函数里面注册```kratos.Registrar(r)```
+
+#### 实现商家申述的接口
+1. 前面都是按常规的逻辑进行
+2. 因为区分了不同的proto，需要在server端的grpc和http中继续注册服务
+2. 这里最重要的就是实现创建商家申述的接口
+```go
+func (b *businessRepo) CreateAppealReview(ctx context.Context, appealReview *model.ReviewAppealInfo) error {
+	return b.data.query.ReviewAppealInfo.WithContext(ctx).Clauses(clause.OnConflict{
+		Columns: []clause.Column{{Name: "review_id"}},
+		// 只有当 review_id 冲突时，才执行以下更新
+		DoUpdates: clause.Assignments(map[string]interface{}{
+			"status":     appealReview.Status,
+			"content":    appealReview.Content,
+			"reason":     appealReview.Reason,
+			"pic_info":   appealReview.PicInfo,
+			"video_info": appealReview.VideoInfo,
+		}),
+	}).Create(appealReview)
+}
+```
+这里是冲突才更新，不冲突就直接插入，注意的是这里的```{Name: "review_id"}```必须是唯一索引

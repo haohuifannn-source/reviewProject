@@ -2,7 +2,6 @@ package biz
 
 import (
 	"context"
-	"errors"
 	"fmt"
 	v1 "review-service/api/review/v1"
 	"review-service/internal/data/model"
@@ -15,10 +14,9 @@ import (
 type ReviewerRepo interface {
 	CreateReview(context.Context, *model.ReviewInfo) (*model.ReviewInfo, error)
 	GetReviewByOrderId(context.Context, int64) ([]*model.ReviewInfo, error)
-	GetReviewByReviewId(context.Context, int64) (*model.ReviewInfo, error)
 
-	ReplyReview(context.Context, *model.ReviewReplyInfo) (*model.ReviewReplyInfo, error)
-	TaskToReply(context.Context, *model.ReviewReplyInfo) error
+	// ReplyReview(context.Context, *model.ReviewReplyInfo) (*model.ReviewReplyInfo, error)
+	// TaskToReply(context.Context, *model.ReviewReplyInfo) error
 }
 
 // ReviewerUsecase is a Reviewer usecase.
@@ -56,31 +54,4 @@ func (uc *ReviewerUsecase) CreateReview(ctx context.Context, review *model.Revie
 	// 实际业务场景下需要查询订单服务和商家服务（通过RPC调用订单服务和商家服务）
 	// 4. 拼装数据入库
 	return uc.repo.CreateReview(ctx, review)
-}
-
-// ReplyReview 商家回复评价的接口
-func (uc *ReviewerUsecase) ReplyReview(ctx context.Context, reviewRep *model.ReviewReplyInfo) (*model.ReviewReplyInfo, error) {
-	// 1. 数据校验
-	// 1.1 数据合法性校验，不允许重复回复
-	rreplys, err := uc.repo.GetReviewByReviewId(ctx, reviewRep.ReviewID)
-	if err != nil {
-		return nil, v1.ErrorDbFiled("数据库查询错误")
-	}
-	if rreplys.HasReply == 1 {
-		return nil, v1.ErrorOvderReplyed("已经回复评价了")
-	}
-	// 1.2 水平越权校验（A商家不可以给B商家回复）
-	// 举例子： 用户A删除订单，uerID + orderID 当条件去查询订单然后删除
-	if reviewRep.StoreID != rreplys.StoreID {
-		return nil, errors.New("水平越权")
-	}
-	// 2. 生成ReplyID
-	rrID := snowflake.GenerateReviewID()
-	reviewRep.ReplyID = rrID
-	// 3. 更新数据(评价回复表和评价表都需要更新，因为评价表里面有一个是否回复的字段，涉及到一个事务操作)
-	if err := uc.repo.TaskToReply(ctx, reviewRep); err != nil {
-		return nil, err
-	}
-	// 4. 直接返回结果
-	return reviewRep, nil
 }
