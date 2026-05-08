@@ -23,13 +23,18 @@ import (
 // Injectors from wire.go:
 
 // wireApp init kratos application.
-func wireApp(confServer *conf.Server, registry *conf.Registry, confData *conf.Data, logger log.Logger) (*kratos.App, func(), error) {
+func wireApp(confServer *conf.Server, registry *conf.Registry, confData *conf.Data, elasticsearch *conf.Elasticsearch, logger log.Logger) (*kratos.App, func(), error) {
 	registrar := server.NewRegister(registry)
 	db, err := data.NewDB(confData)
 	if err != nil {
 		return nil, nil, err
 	}
-	dataData, cleanup, err := data.NewData(db, logger)
+	client := data.NewRedis(confData)
+	dataElasticsearch, err := data.NewEla(elasticsearch)
+	if err != nil {
+		return nil, nil, err
+	}
+	dataData, cleanup, err := data.NewData(db, client, dataElasticsearch, logger)
 	if err != nil {
 		return nil, nil, err
 	}
@@ -39,8 +44,12 @@ func wireApp(confServer *conf.Server, registry *conf.Registry, confData *conf.Da
 	businessRepo := data.NewbusinessRepo(dataData, logger)
 	businessUsecase := biz.NewBusinessUsecase(businessRepo, logger)
 	businessService := service.NewBusinessService(businessUsecase)
-	grpcServer := server.NewGRPCServer(confServer, reviewService, businessService, logger)
-	httpServer := server.NewHTTPServer(confServer, reviewService, businessService, logger)
+	operationRepo := data.NewoperationRepo(dataData, logger)
+	transaction := data.NewTransaction(dataData)
+	operationUsecase := biz.NewOperationUsecase(operationRepo, transaction, logger)
+	operationService := service.NewOperationService(operationUsecase)
+	grpcServer := server.NewGRPCServer(confServer, reviewService, businessService, operationService, logger)
+	httpServer := server.NewHTTPServer(confServer, reviewService, businessService, operationService, logger)
 	app := newApp(logger, registrar, grpcServer, httpServer)
 	return app, func() {
 		cleanup()

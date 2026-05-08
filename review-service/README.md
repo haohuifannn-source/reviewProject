@@ -189,3 +189,48 @@ func (b *businessRepo) CreateAppealReview(ctx context.Context, appealReview *mod
 }
 ```
 这里是冲突才更新，不冲突就直接插入，注意的是这里的```{Name: "review_id"}```必须是唯一索引
+
+#### 实现审核端审核申述的接口
+##### 1. 重点：这里的事务操作是通过在biz层定义的：
+1.1 首先构造一个事务的接口放在biz.go，这样就可以实现全不biz层通用，然后在```OperationUsecase```中嵌入这个接口
+1.2 然后在data层需要实现一个从context中取出tx对象的函数，以便在调用事务操作的时候可以取出所需要的query.Query。同时其他的函数实现也需要通过这个函数拿出query.Query对象。
+1.3 之所以定义一个空结构体，是为了可以在取出的时候有一个独一无二的key，之所以用结构体是因为：
+1.3.1 如果用字符串做 Key。假设你用 "tx"，巧了，另一个你引入的插件也用 "tx"。当你试图从 ctx 里取事务对象时，可能会取到那个插件存进去的一个字符串或结构体，导致程序运行时崩溃（Panic）。
+1.3.2 在 Go 中，两个接口值相等的前提是：类型相同且值相同。当你定义了 type ctxTransactionKey struct{}，这个类型是你包内私有的。即便别的包也定义了一个一模一样的 type ctxTransactionKey struct{}，在 Go 看来，它们也是完全不同的两个类型。
+1.3.3 空结构体零开销
+1.4 在data层要实现创建这个接口的函数，用来向上注册
+***重点***：这个事务的实现可以全函数通用，可以在bussiness\data\operation都可以用
+
+#### Canal工具的引入
+简介可以看```https://liwenzhou.com/posts/go/canal/```
+如果canal一直连不上的话，可以把```canal.instance.master.address=host.docker.internal:3306```更改为```canal.instance.master.address=172.23.80.1:3306```
+
+#### kafka工具的引入
+具体的内容同样参考李文州的博客```https://liwenzhou.com/posts/go/kafka-go/```，粗略的介绍可以看网盘项目的PDF
+
+#### Elasticsearch工具的引入
+具体内容可以参考```https://liwenzhou.com/posts/go/elasticsearch/```
+##### 实现一个从elasticsearch查询评价的接口
+###### 1. 对于从ela查询的方式中，通过Bool.Filter不会去计算文档的相关度，只会去确认是否是这个值；同时Filter会自动缓存查询结果
+###### 2. 时间格式的反序列化，因为ela的时间格式是2006-01-02 15:04:05，而反序列化是2026-05-06T13:49:28Z，不匹配，容易冲突，可以通过自定义结构体去解决。关于为什么要在biz层定义，是因为data层引用了data，防止循环引用
+
+#### Redis的引入
+一般都是先查redis，再去查elasticsearch。这也是对ela的一个保护。加入singeflight可以防止缓存击穿。将大量的请求合成一个请求
+1. 关于这部分的json的序列化和反序列化：
+1.1 序列化的输出就是[]byte的形式，反序列化的输入也的是[]byte，字节切片就是所有的信息都用数字来表示，例如["a"]---->[24]。
+1.2 序列化就是例如
+```type msg struct{
+    string s `json:a`
+}
+```
+变化为```["a" : "内容"]
+1.3 而反序列化就是根据结构体的tag(```a```)去匹配结构体字段的内容(```s```)
+
+#### openapi工具 ----这里可以快速生成api的在线文档
+可以根据proto的结构，自动生成
+```bash
+go install github.com/google/gnostic/cmd/protoc-gen-openapi@latest
+
+make api
+
+```

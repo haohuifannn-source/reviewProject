@@ -2,6 +2,7 @@ package server
 
 import (
 	v1Business "review-service/api/business/v1"
+	v1Operation "review-service/api/operation/v1"
 	v1Review "review-service/api/review/v1"
 	"review-service/internal/conf"
 	"review-service/internal/service"
@@ -16,7 +17,7 @@ import (
 )
 
 // NewGRPCServer new a gRPC server.
-func NewGRPCServer(c *conf.Server, reviewer *service.ReviewService, business *service.BusinessService, logger log.Logger) *grpc.Server {
+func NewGRPCServer(c *conf.Server, reviewer *service.ReviewService, business *service.BusinessService, operation *service.OperationService, logger log.Logger) *grpc.Server {
 	var opts = []grpc.ServerOption{
 		grpc.Middleware(
 			recovery.Recovery(),
@@ -35,6 +36,7 @@ func NewGRPCServer(c *conf.Server, reviewer *service.ReviewService, business *se
 	srv := grpc.NewServer(opts...)
 	v1Review.RegisterReviewServer(srv, reviewer)
 	v1Business.RegisterBusinessServer(srv, business)
+	v1Operation.RegisterOperationServer(srv, operation)
 	return srv
 }
 

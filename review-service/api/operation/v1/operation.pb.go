@@ -148,11 +148,12 @@ func (x *AuditReviewReply) GetReplyID() int64 {
 // 商家申述用户评价请求
 type AuditAppealRequest struct {
 	state         protoimpl.MessageState `protogen:"open.v1"`
-	ReviewID      int64                  `protobuf:"varint,1,opt,name=reviewID,proto3" json:"reviewID,omitempty"`
-	Status        int64                  `protobuf:"varint,2,opt,name=status,proto3" json:"status,omitempty"`
-	OpUser        string                 `protobuf:"bytes,3,opt,name=opUser,proto3" json:"opUser,omitempty"`
-	OpReason      string                 `protobuf:"bytes,4,opt,name=opReason,proto3" json:"opReason,omitempty"`
-	OpRemarks     *string                `protobuf:"bytes,5,opt,name=opRemarks,proto3,oneof" json:"opRemarks,omitempty"`
+	AppealID      int64                  `protobuf:"varint,1,opt,name=appealID,proto3" json:"appealID,omitempty"`
+	ReviewID      int64                  `protobuf:"varint,2,opt,name=reviewID,proto3" json:"reviewID,omitempty"`
+	Status        int64                  `protobuf:"varint,3,opt,name=status,proto3" json:"status,omitempty"`
+	OpUser        string                 `protobuf:"bytes,4,opt,name=opUser,proto3" json:"opUser,omitempty"`
+	OpReason      string                 `protobuf:"bytes,5,opt,name=opReason,proto3" json:"opReason,omitempty"`
+	OpRemarks     *string                `protobuf:"bytes,6,opt,name=opRemarks,proto3,oneof" json:"opRemarks,omitempty"`
 	unknownFields protoimpl.UnknownFields
 	sizeCache     protoimpl.SizeCache
 }
@@ -185,6 +186,13 @@ func (x *AuditAppealRequest) ProtoReflect() protoreflect.Message {
 // Deprecated: Use AuditAppealRequest.ProtoReflect.Descriptor instead.
 func (*AuditAppealRequest) Descriptor() ([]byte, []int) {
 	return file_operation_v1_operation_proto_rawDescGZIP(), []int{2}
+}
+
+func (x *AuditAppealRequest) GetAppealID() int64 {
+	if x != nil {
+		return x.AppealID
+	}
+	return 0
 }
 
 func (x *AuditAppealRequest) GetReviewID() int64 {
@@ -281,13 +289,14 @@ const file_operation_v1_operation_proto_rawDesc = "" +
 	"\n" +
 	"_opRemarks\",\n" +
 	"\x10AuditReviewReply\x12\x18\n" +
-	"\areplyID\x18\x01 \x01(\x03R\areplyID\"\xd1\x01\n" +
+	"\areplyID\x18\x01 \x01(\x03R\areplyID\"\xf6\x01\n" +
 	"\x12AuditAppealRequest\x12#\n" +
-	"\breviewID\x18\x01 \x01(\x03B\a\xfaB\x04\"\x02 \x00R\breviewID\x12\x1f\n" +
-	"\x06status\x18\x02 \x01(\x03B\a\xfaB\x04\"\x02 \x00R\x06status\x12\x1f\n" +
-	"\x06opUser\x18\x03 \x01(\tB\a\xfaB\x04r\x02\x10\x02R\x06opUser\x12#\n" +
-	"\bopReason\x18\x04 \x01(\tB\a\xfaB\x04r\x02\x10\x02R\bopReason\x12!\n" +
-	"\topRemarks\x18\x05 \x01(\tH\x00R\topRemarks\x88\x01\x01B\f\n" +
+	"\bappealID\x18\x01 \x01(\x03B\a\xfaB\x04\"\x02 \x00R\bappealID\x12#\n" +
+	"\breviewID\x18\x02 \x01(\x03B\a\xfaB\x04\"\x02 \x00R\breviewID\x12\x1f\n" +
+	"\x06status\x18\x03 \x01(\x03B\a\xfaB\x04\"\x02 \x00R\x06status\x12\x1f\n" +
+	"\x06opUser\x18\x04 \x01(\tB\a\xfaB\x04r\x02\x10\x02R\x06opUser\x12#\n" +
+	"\bopReason\x18\x05 \x01(\tB\a\xfaB\x04r\x02\x10\x02R\bopReason\x12!\n" +
+	"\topRemarks\x18\x06 \x01(\tH\x00R\topRemarks\x88\x01\x01B\f\n" +
 	"\n" +
 	"_opRemarks\".\n" +
 	"\x10AuditAppealReply\x12\x1a\n" +

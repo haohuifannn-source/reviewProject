@@ -44,11 +44,12 @@ message AuditReviewReply {
 
 // 商家申述用户评价请求
 message AuditAppealRequest {
-	int64 reviewID = 1 [(validate.rules).int64 = {gt: 0}];
-	int64 status = 2 [(validate.rules).int64 = {gt: 0}];
-	string opUser = 3 [(validate.rules).string = {min_len: 2}];
-    string opReason = 4 [(validate.rules).string = {min_len: 2}];
-    optional string opRemarks = 5;
+	int64 appealID = 1 [(validate.rules).int64 = {gt: 0}];
+	int64 reviewID = 2 [(validate.rules).int64 = {gt: 0}];
+	int64 status = 3 [(validate.rules).int64 = {gt: 0}];
+	string opUser = 4 [(validate.rules).string = {min_len: 2}];
+    string opReason = 5 [(validate.rules).string = {min_len: 2}];
+    optional string opRemarks = 6;
 }
 
 // 商家申述用户评价回复

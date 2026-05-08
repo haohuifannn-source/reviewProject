@@ -17,6 +17,8 @@ service Review {
 			body: "*"
 		};
 	};
+	// ListReviewByStoreID商家ID查询
+	rpc ListReviewByStoreID (ListReviewByStoreIDRequest) returns (ListReviewByStoreIDReply){};
 }
 
 // 创建评价的参数
@@ -35,4 +37,26 @@ message CreateReviewRequest {
 // 创建评价的回复
 message CreateReviewReply {
 	int64 reviewID = 1;
+}
+
+message ListReviewByStoreIDRequest{
+	int64 storeID = 1 [(validate.rules).int64 = {gt: 0}];
+	int32 page = 2 [(validate.rules).int32 = {gt: 0}];
+	int32 size = 3 [(validate.rules).int32 = {gt: 0}];
+}
+
+message ListReviewByStoreIDReply{
+	repeated ReviewInfo list = 1;
+}
+
+message ReviewInfo{
+	int64 reviewID = 1;
+	int64 userID = 2;
+	int64 orderID = 3;
+	int64 score = 4;
+	int64 serviceScore = 5;
+	int64 expressScore = 6;
+	string content = 7;
+	string picInfo = 8;
+	string videoInfo = 9;
 }
